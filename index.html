@@ -1,1 +1,382 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Stickers Generator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+  <style>
+    /* Your CSS styles here (unchanged) */
+   
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      text-align: center;
+      
+      padding-left: 15px;
+    }
+
+    #ticketContainer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      position: relative;
+    }
+
+    .sticker {
+      width: 120px;
+      height: 50px;
+      margin: 10px;
+      border: 1px solid black;
+      text-align: center;
+      position: relative;
+     
+      background-image:url(images/whatsapp-icon.png) ;
+      background-repeat: repeat;
+      background-size: cover;
+      color: black;
+      border-radius: 8px;
+    }
+
+    .barcode {
+      
+      top: 5%;
+      left: 1%;
+      
+      width: 130px;
+      height: 55px;
+      position: absolute;
+    
+    }
+
+    p {
+      color: white;
+      font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    }
+
+    h2 {
+      font-family: Georgia, 'Times New Roman', Times, serif;
+      font-size: 20px;
+    }
+
+    h1, h4, h3 {
+      font-family: cursive;
+      font-size: 20px;
+    }
+
+    h4, h3 {
+      font-family: cursive;
+      font-size: 16px;
+    }
+
+    .logo {
+      width: 50%;
+      height: 50%;
+      position: absolute;
+      top: 10%;
+      left: 25%;
+    }
+
+    /* Style for the Scan Barcode button */
+#scanBtn {
+  background-color: #007BFF; /* Blue background color */
+  color: white; /* White text color */
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px; /* Add some padding for better clickability */
+  font-size: 16px;
+  cursor: pointer; /* Show a pointer cursor on hover */
+  margin: 10px; /* Add some margin for spacing */
+}
+
+#scanBtn:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+}
+
+/* Style for the Download Stickers as PNG button */
+#downloadBtn {
+  background-color: #28a745; /* Green background color */
+  color: white; /* White text color */
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px; /* Add some padding for better clickability */
+  font-size: 16px;
+  cursor: pointer; /* Show a pointer cursor on hover */
+  margin: 10px; /* Add some margin for spacing */
+}
+
+#downloadBtn:hover {
+  background-color: #1d9e34; /* Darker green on hover */
+}
+
+
+    #generateBtn {
+      background-color: orangered;
+      color: white;
+      border-radius: 20px;
+      border: none;
+      margin-bottom: 25px;
+      font-weight: bold;
+      font-size: 16px;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+
+    #generateBtn:hover {
+  background-color: orange; color: white; /* Darker green on hover */
+}
+
+    .ticket-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 50px;
+    }
+
+  </style>
+</head>
+<body>
+    <h1 style="color: palevioletred; text-align: center; font-weight: bold; font-family: cursive; font-size: 40px;">Wizcom Barcode Stickers Generator 2023</h1>
+  
+    <!-- Barcode Generation Section -->
+    <button id="generateBtn">Generate Barcode Stickers </button>
+    <div id="ticketContainer">
+      <!-- Barcode generation elements will be added here -->
+    </div>
+  
+    <!-- Barcode Scanning Section -->
+    <button id="scanBtn">Scan Barcode</button>
+    <div id="scannedData" style="text-align: center;"></div>
+  
+    <!-- Export Options Section -->
+    <label for="exportFormat">Export Format:</label>
+    <select id="exportFormat">
+      <option value="png">PNG</option>
+      <option value="jpeg">JPEG</option>
+      <option value="svg">SVG</option>
+    </select>
+    <button id="downloadBtn">Download Stickers</button>
+
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
+
+  <script>
+    
+           // Wait for the DOM to be fully loaded before executing JavaScript
+document.addEventListener("DOMContentLoaded", function () {
+
+// Get references to the scan and download buttons and the ticket container
+const scanBtn = document.getElementById("scanBtn");
+const downloadBtn = document.getElementById("downloadBtn");
+const ticketContainer = document.getElementById("ticketContainer");
+const scannedDataDiv = document.getElementById("scannedData");
+
+// Initialize the QuaggaJS scanner
+function initializeScanner() {
+  Quagga.init(
+    {
+      inputStream: {
+        name: "Live",
+        type: "LiveStream",
+        target: document.querySelector("#ticketContainer"),
+        constraints: {
+          width: 640,
+          height: 480,
+        },
+      },
+      decoder: {
+        readers: ["ean_reader"],
+      },
+    },
+    function (err) {
+      if (err) {
+        console.error(err);
+        return;
+      }
+      Quagga.start();
+    }
+  );
+
+  // Listen for barcode detection
+  Quagga.onDetected(function (result) {
+    const scannedData = result.codeResult.code;
+    scannedDataDiv.innerHTML = `Scanned Barcode: ${scannedData}`;
+    Quagga.stop();
+  });
+}
+
+// Attach a click event listener to the scan button
+scanBtn.addEventListener("click", function () {
+  scannedDataDiv.innerHTML = ""; // Clear previous scan result
+  // Initialize the QuaggaJS scanner when the button is clicked
+  initializeScanner();
+});
+
+// Attach a click event listener to the download button
+downloadBtn.addEventListener("click", function () {
+  // Get the selected export format
+  const exportFormat = document.getElementById("exportFormat").value;
+
+  // Capture the sticker container as an image based on the selected format
+  html2canvas(ticketContainer).then(function (canvas) {
+    let dataURL;
+    let fileExtension;
+
+    switch (exportFormat) {
+      case "png":
+        dataURL = canvas.toDataURL("image/png");
+        fileExtension = "png";
+        break;
+      case "jpeg":
+        dataURL = canvas.toDataURL("image/jpeg");
+        fileExtension = "jpeg";
+        break;
+      case "svg":
+        const svgData = new XMLSerializer().serializeToString(canvas);
+        dataURL = "data:image/svg+xml;base64," + btoa(svgData);
+        fileExtension = "svg";
+        break;
+      default:
+        return; // Handle unsupported formats if necessary
+    }
+
+    // Create a download link with the selected format
+    const downloadLink = document.createElement("a");
+    downloadLink.href = dataURL;
+    downloadLink.download = `stickers.${fileExtension}`;
+    downloadLink.click();
+  });
+});
+
+// Get a reference to the "Generate Stickers and Download as Zip" button
+const generateBtn = document.getElementById("generateBtn");
+
+generateBtn.addEventListener("click", function () {
+  // Clear the ticket container before generating new stickers
+  ticketContainer.innerHTML = "";
+
+  // Generate stickers with barcodes
+  for (let i = 1; i <= 9; i++) {
+    const sticker = document.createElement("div");
+    sticker.classList.add("sticker");
+    sticker.innerHTML = `
+      <h4>1010 ${i}</h4>
+      <svg class="barcode"></svg>
+    `;
+
+    ticketContainer.appendChild(sticker);
+
+    JsBarcode(sticker.querySelector(".barcode"), `18${i}`, {
+      displayValue: false,
+      height: 35,
+      width: 1,
+      fontOptions: "custom",
+      font: "monospace",
+      fontSize: 40,
+    });
+  }
+
+
+});
+
+// Function to validate and store scanned data
+function validateAndStoreScannedData(data) {
+  if (isGeneratedByGenerator(data)) {
+    if (!isBarcodeUsed(data)) {
+      storeScannedBarcode(data);
+      alert("Barcode successfully scanned and stored.");
+    } else {
+      alert("This barcode has already been used.");
+    }
+  } else {
+    alert("This barcode is not valid.");
+  }
+}
+
+// Function to check if the scanned barcode was generated by this generator
+function isGeneratedByGenerator(scannedData) {
+  // Replace this with your own validation logic
+  // For demonstration purposes, we assume valid barcodes start with "18"
+  return scannedData.startsWith("18");
+}
+
+// Function to check if the barcode has already been used
+function isBarcodeUsed(scannedData) {
+  const storedBarcodes = getStoredBarcodes();
+  return storedBarcodes.includes(scannedData);
+}
+
+// Function to store scanned barcode
+function storeScannedBarcode(data) {
+  const storedBarcodes = getStoredBarcodes();
+  storedBarcodes.push(data);
+  localStorage.setItem("storedBarcodes", JSON.stringify(storedBarcodes));
+}
+
+// Function to retrieve stored scanned barcodes
+function getStoredBarcodes() {
+  return JSON.parse(localStorage.getItem("storedBarcodes")) || [];
+}
+
+// Attach a click event listener to the scan button
+scanBtn.addEventListener("click", function () {
+  scannedDataDiv.innerHTML = ""; // Clear previous scan result
+  // Initialize the QuaggaJS scanner when the button is clicked
+  initializeScanner();
+});
+
+// Attach a click event listener to the download button
+downloadBtn.addEventListener("click", function () {
+  // Get the selected export format
+  const exportFormat = document.getElementById("exportFormat").value;
+
+  // Capture the sticker container as an image based on the selected format
+  html2canvas(ticketContainer).then(function (canvas) {
+    let dataURL;
+    let fileExtension;
+
+    switch (exportFormat) {
+      case "png":
+        dataURL = canvas.toDataURL("image/png");
+        fileExtension = "png";
+        break;
+      case "jpeg":
+        dataURL = canvas.toDataURL("image/jpeg");
+        fileExtension = "jpeg";
+        break;
+      case "svg":
+        const svgData = new XMLSerializer().serializeToString(canvas);
+        dataURL = "data:image/svg+xml;base64," + btoa(svgData);
+        fileExtension = "svg";
+        break;
+      default:
+        return; // Handle unsupported formats if necessary
+    }
+
+    // Create a download link with the selected format
+    const downloadLink = document.createElement("a");
+    downloadLink.href = dataURL;
+    downloadLink.download = `stickers.${fileExtension}`;
+    downloadLink.click();
+  });
+});
+
+// ... (Rest of your existing code)
+});
+
+
+
+
+
+
+  </script>
+</body>
+</html>
 
